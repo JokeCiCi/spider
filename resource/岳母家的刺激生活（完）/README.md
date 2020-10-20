@@ -1,0 +1,1 @@
+{"auther":["未知韩国作家"],"cover":["http://c1-v6e9-zp1u.cangniaobbs.com/bookimages///cover-cafe383c0b233572ae80de9a1a096bfd.jpg","http://c1-v6e9-zp1u.cangniaobbs.com/bookimages///extCover-21b316f2a3ccfde3df3409b85ec21c04.jpg"],"desc":["\\n什么..!! 炮友怀孕了..?! 而丈母娘居然是我儿时的初恋对象?! 这命运的玩笑有点儿开大了...\\n"],"id":["2015"],"keyword":["御姐,熟女,OL,丝袜,黑丝,乱伦,模特,艳遇"],"title":["岳母家的刺激生活（完）"]}

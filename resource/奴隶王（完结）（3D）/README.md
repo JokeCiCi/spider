@@ -1,0 +1,1 @@
+{"auther":["未知"],"cover":["http://c1-v6e9-zp1u.cangniaobbs.com/bookimages/cover-80414653e04a4594b5f32d5bc646cb8c.jpg","http://c1-v6e9-zp1u.cangniaobbs.com/bookimages/extCover-92ac870f143ff136b771a08d84cf9152.jpg"],"desc":["男主人公在异世界解放奴隶的组建后宫的小故事"],"finished":["false"],"id":["1571"],"keyword":["3D,美女,御姐,少妇,熟女,多P,异世界,大胸,高颜值,SM"],"title":["奴隶王（完结）（3D）"]}

@@ -1,0 +1,9 @@
+
+{{ range $comicName,$comic := .Data}}
+  <div style="width:80%;height:auto;text-align:center">
+    <a href="/chapters?comicname={{ $comicName }}">
+      <img style="max-height: 100%; max-width: 100%;" src="{{ index $comic.Data.cover 0 }}"/>
+      <div><p>{{ $comicName }}</p></div>
+    </a>
+  </div>
+{{ end }}

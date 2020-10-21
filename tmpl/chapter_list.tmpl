@@ -1,0 +1,18 @@
+{{ $comicData := .Data }}
+{{ $num :=0 }}
+<table>
+<tr style="width:80%;height:auto;text-align:center">
+{{ range $chapterName,$chapter := .Chapters }}
+<td>
+  <div style="width:15%;height:20%;">
+    <a href="/chapter?comicname={{ index $comicData.name 0 }}&chaptername={{ $chapterName }}">
+    <img src="{{ index $chapter.Data.cover 0 }}"/>
+    <div><p>{{ $chapterName }}</p></div>
+    </a>
+  </div>
+<td>
+{{ if isEnd $num 2 }}</tr><tr style="width:80%;height:auto;text-align:center">{{ end }}
+{{ end }}
+</table>
+
+

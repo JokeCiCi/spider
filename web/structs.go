@@ -1,16 +1,14 @@
 package web
 
-
-type Chapter struct{
-	Data []string
+type Chapter struct {
+	Data map[string][]string
 }
 
-type Comic struct{
-	Cover []string
-	Data map[string]*Chapter
+type Comic struct {
+	Data     map[string][]string
+	Chapters map[string]*Chapter
 }
 
-type ListComic struct{
+type ListPage struct {
 	Data map[string]*Comic
 }
-

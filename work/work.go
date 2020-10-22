@@ -19,7 +19,7 @@ import (
 
 var wg sync.WaitGroup
 
-func StartSpider(){
+func StartSpider() {
 	log.Println("work start")
 	var FirstChain chan *ListPage = make(chan *ListPage, 10)
 	var SecondChain chan *ItemPage = make(chan *ItemPage, 100)
@@ -91,7 +91,7 @@ CHCLOSED:
 			}
 			for _, v := range itemInfos {
 				var itemPage *ItemPage = &ItemPage{
-					// http://xx-mh.com/home/api/chapter_list/tp/2137-1-1-10
+					// http://xx-mh.com/home/api/cate/tp/1-0-1-1-1
 					// {"id":"2137","title":"正在插入的事…会被大家发现的！","lanmu_id":null,"create_time":"2020-09-16 00:51:59","update_time":"2020-09-16 00:54:13","sort":null,"status":"1","view":"618661","image":"\/bookimages\/\/\/cover-8d0ab116baa5b212aea9380208e200cf.jpg","type":"1","auther":"Kazuma Ichihara","desc":"本来这只是我们三个臭男生的温泉旅行…却在旅馆跟班上女同学不期而遇！从松散的浴衣裙下，淫荡的汁液淌个不停！ 更夸张的是，醉醺醺的女生们要和我们玩刺激的国王游戏…！？","mark":"217","ticai_id":"9","duzhequn_id":null,"diyu_id":null,"mhstatus":"1","tjswitch":"0","isfree":"0","cjid":"1581","cjstatus":"1","cjname":"xxmh","keyword":"温泉,淫荡,多人,国王游戏","last_chapter_title":"第章","searchnums":"0","last_chapter":"第10话","isjingpin":"0","xianmian":"0","cover":"\/bookimages\/\/\/extCover-43f9b42c41bdad91293cc78dc7013f60.jpg","ishot":"0","issole":"0","isnew":"0","h":"1","vipcanread":"1","pingfen":"9.83","ticai":"都市"}
 					Page: &Page{
 						Url: &url.URL{
@@ -100,17 +100,13 @@ CHCLOSED:
 							Path:   fmt.Sprintf("/home/api/chapter_list/tp/%s-%s-%s-%s", v[0], "1", "1", "10"),
 						},
 						Data: map[string][]string{
-							"id":      []string{v[0]},
-							"title":   []string{v[1]},
-							"auther":  []string{v[3]},
-							"desc":    []string{v[4]},
-							"keyword": []string{v[5]},
-							"cover": []string{
-								path.Join("http://c1-v6e9-zp1u.cangniaobbs.com",strings.Replace(v[2], "\\", "", -1)),
-								path.Join("http://c1-v6e9-zp1u.cangniaobbs.com",strings.Replace(v[6], "\\", "", -1)),
-								//fmt.Sprintf("%s%s", "http://c1-v6e9-zp1u.cangniaobbs.com", strings.Replace(v[2], "\\", "", -1)),
-								//fmt.Sprintf("%s%s", "http://c1-v6e9-zp1u.cangniaobbs.com", strings.Replace(v[6], "\\", "", -1)),
-							},
+							"id":       []string{v[0]},
+							"title":    []string{v[1]},
+							"cover":    []string{path.Join("http://c1-v6e9-zp1u.cangniaobbs.com", strings.Replace(v[2], "\\", "", -1))},
+							"auther":   []string{v[3]},
+							"desc":     []string{v[4]},
+							"keyword":  []string{v[5]},
+							"extCover": []string{path.Join("http://c1-v6e9-zp1u.cangniaobbs.com", strings.Replace(v[6], "\\", "", -1))},
 						},
 					},
 					ListPage: listPage,
@@ -197,10 +193,10 @@ CHCLOSED:
 					Page: &Page{
 						// http://c1-v6e9-zp1u.cangniaobbs.com/bookimages/1350/224996/1.jpg
 						Data: map[string][]string{
-							"id":       []string{v[0]},
-							"title":    []string{v[1]},
-							"cover":    []string{path.Join("http://c1-v6e9-zp1u.cangniaobbs.com/",strings.Replace(v[2], "\\", "", -1))},
-							"image":    strings.Split(strings.Replace(strings.Replace(v[3], "\\", "", -1), "./", "http://c1-v6e9-zp1u.cangniaobbs.com/", -1), ","),
+							"id":    []string{v[0]},
+							"title": []string{v[1]},
+							"cover": []string{path.Join("http://c1-v6e9-zp1u.cangniaobbs.com/", strings.Replace(v[2], "\\", "", -1))},
+							"image": strings.Split(strings.Replace(strings.Replace(v[3], "\\", "", -1), "./", "http://c1-v6e9-zp1u.cangniaobbs.com/", -1), ","),
 						},
 					},
 					ItemPage: itemPage,
@@ -276,36 +272,50 @@ CHCLOSED:
 			}
 
 			resourcePath := "resource"
-			comicPath := fmt.Sprintf("%s/%s", resourcePath, descPage.ItemPage.Data["title"][0])
-			for _, v := range descPage.ItemPage.Data["cover"] {
-				var imgUrl, err = url.Parse(v)
-				if err != nil {
-					log.Printf("WorkThird Failed Parse err:%v\n", err)
-					continue
-				}
-				var req *http.Request = &http.Request{
-					Method: http.MethodGet,
-					URL:    imgUrl,
-					Header: download.FakeHeader(),
-				}
-				req.Header.Add("Referer", "http://xx-mh.com/")
-				b, err := download.DownloadFile(req)
-				imgPath := fmt.Sprintf("%s/%s", comicPath, path.Base(imgUrl.Path))
-				err = store.MkdirAll(imgPath)
-				if err != nil {
-					log.Printf("WorkThird Failed MkdirAll err:%v\n", err)
-					continue
-				}
-				log.Printf("WorkThird descPage:%v\n", imgPath)
-				store.StoreFile(imgPath, b)
+			comicPath := path.Join(resourcePath, descPage.ItemPage.Data["title"][0])
+			comicCover := descPage.ItemPage.Data["cover"][0]
+			comicCoverUrl, _ := url.Parse(comicCover)
+			var req *http.Request = &http.Request{
+				Method: http.MethodGet,
+				URL:    comicCoverUrl,
+				Header: download.FakeHeader(),
 			}
+			req.Header.Add("Referer", "http://xx-mh.com/")
+			b, err := download.DownloadFile(req)
+			if err != nil {
+				log.Printf("WorkThird Failed DownloadFile err:%v\n", err)
+				continue
+			}
+			comicCoverPath := path.Join(comicPath, "cover.jpg")
+			store.MkdirAll(comicCoverPath)
 
-			b, err := json.Marshal(descPage.ItemPage.Data)
+			log.Printf("WorkThird descPage:%v\n", comicCoverPath)
+			store.StoreFile(comicCoverPath, b)
+
+			comicExtCover := descPage.ItemPage.Data["extCover"][0]
+			comicExtCoverUrl, _ := url.Parse(comicExtCover)
+			req = &http.Request{
+				Method: http.MethodGet,
+				URL:    comicExtCoverUrl,
+				Header: download.FakeHeader(),
+			}
+			req.Header.Add("Referer", "http://xx-mh.com/")
+			b, err = download.DownloadFile(req)
+			if err != nil {
+				log.Printf("WorkThird Failed DownloadFile err:%v\n", err)
+				continue
+			}
+			comicExtCoverPath := path.Join(comicPath, "extCover.jpg")
+			store.MkdirAll(comicExtCoverPath)
+			log.Printf("WorkThird descPage:%v\n", comicExtCoverPath)
+			store.StoreFile(comicCoverPath, b)
+
+			b, err = json.Marshal(descPage.ItemPage.Data)
 			if err != nil {
 				log.Printf("WorkThird Failed Marshal err:%v\n", err)
 				continue
 			}
-			readmePath := fmt.Sprintf("%s/%s", comicPath, "README.md")
+			readmePath := path.Join(comicPath, "README.md")
 			store.StoreFile(readmePath, b)
 
 			for _, v := range descPage.Data["image"] {
@@ -325,8 +335,7 @@ CHCLOSED:
 					log.Printf("WorkThird Failed DownloadFile err:%v\n", err)
 					continue
 				}
-				chapterPath := fmt.Sprintf("%s/%s", comicPath, descPage.Data["title"][0])
-				imgPath := fmt.Sprintf("%s/%s", chapterPath, path.Base(imgUrl.Path))
+				imgPath := path.Join(comicPath, descPage.Data["title"][0], path.Base(imgUrl.Path))
 				err = store.MkdirAll(imgPath)
 				if err != nil {
 					log.Printf("WorkThird Failed MkdirAll err:%v\n", err)
@@ -335,6 +344,25 @@ CHCLOSED:
 				log.Printf("WorkThird descPage:%v\n", imgPath)
 				store.StoreFile(imgPath, b)
 			}
+
+			chapterCover := descPage.Data["cover"][0]
+			chapterCoverUrl, _ := url.Parse(chapterCover)
+			req = &http.Request{
+				Method: http.MethodGet,
+				URL:    chapterCoverUrl,
+				Header: download.FakeHeader(),
+			}
+			req.Header.Add("Referer", "http://xx-mh.com/")
+			b, err = download.DownloadFile(req)
+			if err != nil {
+				log.Printf("WorkThird Failed DownloadFile err:%v\n", err)
+				continue
+			}
+			chapterCoverPath := path.Join(comicPath, descPage.Data["title"][0],"cover.jpg")
+			store.MkdirAll(chapterCoverPath)
+			log.Printf("WorkThird descPage:%v\n", comicExtCoverPath)
+			store.StoreFile(chapterCoverPath, b)
+
 			os.Exit(1)
 		default:
 			time.Sleep(time.Second)

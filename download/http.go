@@ -25,8 +25,8 @@ func FakeHeader() http.Header {
 }
 
 func DownloadHTML(req *http.Request) (string, error) {
-	time.Sleep(time.Millisecond * 100 * time.Duration(rand.Intn(100)))
-	resp, err := http.DefaultClient.Do(req)
+	time.Sleep(time.Millisecond * time.Duration(rand.Intn(2000)))
+	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("DownloadHTML Do failed err:%v\n", err)
 		return "", fmt.Errorf("DownloadHTML failed url:%v", req.URL)
@@ -42,8 +42,8 @@ func DownloadHTML(req *http.Request) (string, error) {
 }
 
 func DownloadFile(req *http.Request) ([]byte, error) {
-	time.Sleep(time.Millisecond * 100 * time.Duration(rand.Intn(100)))
-	resp, err := http.DefaultClient.Do(req)
+	time.Sleep(time.Millisecond * time.Duration(rand.Intn(2000)))
+	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("DownloadHTML Do failed err:%v\n", err)
 		return nil, fmt.Errorf("DownloadHTML failed url:%v", req.URL)

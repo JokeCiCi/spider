@@ -102,11 +102,11 @@ CHCLOSED:
 						Data: map[string][]string{
 							"id":       []string{v[0]},
 							"title":    []string{v[1]},
-							"cover":    []string{path.Join("http://c1-v6e9-zp1u.cangniaobbs.com", strings.Replace(v[2], "\\", "", -1))},
+							"cover":    []string{strings.Replace(process.ReplaceAllString(strings.Replace(v[2],`\`,``,-1), `/+`, `/`), `/bookimages`, `http://c1-v6e9-zp1u.cangniaobbs.com/bookimages`, -1)},
 							"auther":   []string{v[3]},
 							"desc":     []string{v[4]},
 							"keyword":  []string{v[5]},
-							"extCover": []string{path.Join("http://c1-v6e9-zp1u.cangniaobbs.com", strings.Replace(v[6], "\\", "", -1))},
+							"extCover": []string{strings.Replace(process.ReplaceAllString(strings.Replace(v[6],`\`,``,-1), `/+`, `/`), `/bookimages`, `http://c1-v6e9-zp1u.cangniaobbs.com/bookimages`, -1)},
 						},
 					},
 					ListPage: listPage,
@@ -183,6 +183,8 @@ CHCLOSED:
 			itemPage.Html = html
 
 			// ② 解析：解析每章节信息
+			// http://xx-mh.com/home/api/chapter_list/tp/1058-1-1-10
+			// http://c1-v6e9-zp1u.cangniaobbs.com/bookimages/1350/224996/1.jpg
 			itemInfos, err := process.FindAllInfo(itemPage.Html, `{"id":"([0-9]+?)"[\s\S]*?"title":"([\s\S]+?)"[\s\S]*?"image":"([\s\S]+?)"[\s\S]*?"imagelist":"([\s\S]+?)"[\s\S]*?}`)
 			if err != nil {
 				log.Printf("WorkSecond Failed FindAllInfo err:%v\n", err)
@@ -191,12 +193,11 @@ CHCLOSED:
 			for _, v := range itemInfos {
 				var descPage *DescPage = &DescPage{
 					Page: &Page{
-						// http://c1-v6e9-zp1u.cangniaobbs.com/bookimages/1350/224996/1.jpg
 						Data: map[string][]string{
 							"id":    []string{v[0]},
 							"title": []string{v[1]},
-							"cover": []string{path.Join("http://c1-v6e9-zp1u.cangniaobbs.com/", strings.Replace(v[2], "\\", "", -1))},
-							"image": strings.Split(strings.Replace(strings.Replace(v[3], "\\", "", -1), "./", "http://c1-v6e9-zp1u.cangniaobbs.com/", -1), ","),
+							"cover": []string{strings.Replace(process.ReplaceAllString(strings.Replace(v[2],`\`,``,-1), `/+`, `/`), `/bookimages`, `http://c1-v6e9-zp1u.cangniaobbs.com/bookimages`, 1)},
+							"image": strings.Split(strings.Replace(process.ReplaceAllString(v[3], `./`, `/`), `/bookimages`, `http://c1-v6e9-zp1u.cangniaobbs.com/bookimages`, -1), `,`),
 						},
 					},
 					ItemPage: itemPage,
@@ -254,15 +255,8 @@ CHCLOSED:
 			if !exist {
 				break CHCLOSED
 			}
-			if len(thirdCh) == 0 {
-				time.Sleep(time.Second)
-				stopCount++
-				if stopCount == 60 {
-					break CHCLOSED
-				}
-			} else {
-				stopCount = 0
-			}
+			stopCount = 0
+
 			log.Printf("WorkThird descPage:%v\n", descPage.Data) // TODO
 			for k, v := range descPage.Data {
 				fmt.Println("descPage", k, v)
@@ -273,6 +267,7 @@ CHCLOSED:
 
 			resourcePath := "resource"
 			comicPath := path.Join(resourcePath, descPage.ItemPage.Data["title"][0])
+
 			comicCover := descPage.ItemPage.Data["cover"][0]
 			comicCoverUrl, _ := url.Parse(comicCover)
 			var req *http.Request = &http.Request{
@@ -288,9 +283,8 @@ CHCLOSED:
 			}
 			comicCoverPath := path.Join(comicPath, "cover.jpg")
 			store.MkdirAll(comicCoverPath)
-
-			log.Printf("WorkThird descPage:%v\n", comicCoverPath)
 			store.StoreFile(comicCoverPath, b)
+			log.Printf("WorkThird comicCoverPath:%v\n", comicCoverPath)
 
 			comicExtCover := descPage.ItemPage.Data["extCover"][0]
 			comicExtCoverUrl, _ := url.Parse(comicExtCover)
@@ -306,17 +300,17 @@ CHCLOSED:
 				continue
 			}
 			comicExtCoverPath := path.Join(comicPath, "extCover.jpg")
-			store.MkdirAll(comicExtCoverPath)
-			log.Printf("WorkThird descPage:%v\n", comicExtCoverPath)
 			store.StoreFile(comicCoverPath, b)
+			log.Printf("WorkThird comicExtCoverPath:%v\n", comicExtCoverPath)
 
 			b, err = json.Marshal(descPage.ItemPage.Data)
 			if err != nil {
 				log.Printf("WorkThird Failed Marshal err:%v\n", err)
 				continue
 			}
-			readmePath := path.Join(comicPath, "README.md")
-			store.StoreFile(readmePath, b)
+			comicReadmePath := path.Join(comicPath, "README.md")
+			store.StoreFile(comicReadmePath, b)
+			log.Printf("WorkThird comicReadmePath:%v\n", comicReadmePath)
 
 			for _, v := range descPage.Data["image"] {
 				var imgUrl, err = url.Parse(v)
@@ -335,14 +329,14 @@ CHCLOSED:
 					log.Printf("WorkThird Failed DownloadFile err:%v\n", err)
 					continue
 				}
-				imgPath := path.Join(comicPath, descPage.Data["title"][0], path.Base(imgUrl.Path))
-				err = store.MkdirAll(imgPath)
+				chapterImgPath := path.Join(comicPath, descPage.Data["title"][0], path.Base(imgUrl.Path))
+				err = store.MkdirAll(chapterImgPath)
 				if err != nil {
 					log.Printf("WorkThird Failed MkdirAll err:%v\n", err)
 					continue
 				}
-				log.Printf("WorkThird descPage:%v\n", imgPath)
-				store.StoreFile(imgPath, b)
+				store.StoreFile(chapterImgPath, b)
+				log.Printf("WorkThird chapterImgPath:%v\n", chapterImgPath)
 			}
 
 			chapterCover := descPage.Data["cover"][0]
@@ -358,14 +352,27 @@ CHCLOSED:
 				log.Printf("WorkThird Failed DownloadFile err:%v\n", err)
 				continue
 			}
-			chapterCoverPath := path.Join(comicPath, descPage.Data["title"][0],"cover.jpg")
+			chapterCoverPath := path.Join(comicPath, descPage.Data["title"][0], "cover.jpg")
 			store.MkdirAll(chapterCoverPath)
-			log.Printf("WorkThird descPage:%v\n", comicExtCoverPath)
 			store.StoreFile(chapterCoverPath, b)
+			log.Printf("WorkThird chapterCoverPath:%v\n", chapterCoverPath)
 
-			os.Exit(1)
+			b, err = json.Marshal(descPage.Data)
+			if err != nil {
+				log.Printf("WorkThird Failed Marshal err:%v\n", err)
+				continue
+			}
+			chapterReadmePath := path.Join(comicPath, descPage.Data["title"][0], "README.md")
+			store.StoreFile(chapterReadmePath, b)
+			log.Printf("WorkThird chapterReadmePath:%v\n", chapterReadmePath)
 		default:
-			time.Sleep(time.Second)
+			if len(thirdCh) == 0 {
+				time.Sleep(time.Second)
+				stopCount++
+				if stopCount == 60 {
+					break CHCLOSED
+				}
+			}
 		}
 	}
 }

@@ -27,3 +27,7 @@ func FindAllInfo(text, allInfoRe string) ([][]string, error) {
 	}
 	return result, nil
 }
+
+func ReplaceAllString(src, srcRe, repl string) string {
+	return regexp.MustCompile(srcRe).ReplaceAllString(src, repl)
+}
